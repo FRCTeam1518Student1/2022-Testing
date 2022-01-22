@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 public class OI extends SubsystemBase {
 
-    public final Joystick joystick = new Joystick(0);
+    public static final Joystick joystick = new Joystick(0);
     public static double liveX;
     public static double liveZ;
     public static double livePow;

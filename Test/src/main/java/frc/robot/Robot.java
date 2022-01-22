@@ -4,7 +4,12 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.DriveTrain;
@@ -12,15 +17,19 @@ import frc.robot.subsystems.OI;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
+  private final TalonFX rightFront = new TalonFX(2);
+
+  private long startTime;
 
   private RobotContainer m_robotContainer;
 
-  private DriveTrain driveTrain = new DriveTrain();
+  public static DriveTrain driveTrain = new DriveTrain();
   private OI oi = new OI();
 
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
+    startTime = System.currentTimeMillis();
   }
 
   @Override
@@ -44,7 +53,11 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    /*if(System.currentTimeMillis()-startTime < 500L) {
+      driveTrain.autonomousDrive(0.75d, 0.75d);
+    }*/
+  }
 
   @Override
   public void teleopInit() {
@@ -55,7 +68,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    driveTrain.driveByStick(oi.joystick.getY()*0.75d, -(oi.joystick.getZ()*0.5d));
+    driveTrain.driveByStick(oi.joystick.getY()*0.5d, -(oi.joystick.getZ()*0.5d));
+    //if (OI.joystick.getRawButton(1)) {
+      /*System.out.println("Sensor Vel:" + rightFront.getSelectedSensorVelocity());
+      System.out.println("Sensor Pos:" + rightFront.getSelectedSensorPosition());
+      System.out.println("Out %" + rightFront.getMotorOutputPercent());*/
+    //}
   }
 
   @Override
