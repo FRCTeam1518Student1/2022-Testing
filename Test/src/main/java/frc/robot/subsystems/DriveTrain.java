@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
@@ -27,13 +28,15 @@ public class DriveTrain extends SubsystemBase {
   private final MotorController leftFront = new WPI_TalonFX(0);
   private final MotorController leftRear = new WPI_TalonFX(3);
   private final MotorControllerGroup leftMotorGroup = new MotorControllerGroup(leftFront, leftRear);
-  public static Gyro rioGyro;
+  public static AnalogGyro rioGyro;
   private final DifferentialDrive m_drive;
+  private final double deadband = 0.1d;
+  private final double driveDeadband = 0.1d;
 
 
   /** Creates a new ExampleSubsystem. */
   public DriveTrain() {
-    rioGyro = new ADXRS450_Gyro(SPI.Port.kOnboardCS0);
+    rioGyro = new AnalogGyro(0);
     m_drive = new DifferentialDrive(leftMotorGroup, rightMotorGroup);
     leftMotorGroup.setInverted(true);
     startPos = ExampleCommand.motorSensor.getSelectedSensorPosition();
@@ -51,15 +54,20 @@ public class DriveTrain extends SubsystemBase {
 
 
   public void driveByStick(final double liveX, final double liveZ) {
-    m_drive.arcadeDrive(liveX, liveZ);
-    System.out.println("Units traveled: " + Math.abs(ExampleCommand.motorSensor.getSelectedSensorPosition()-startPos));
-    System.out.println(distanceToNativeUnits((1)));
+    double fixedLiveZ = Math.abs(liveZ) < deadband ? 0.0d : liveZ;
+    /*if(Math.abs(liveX) >= 0.1) {
+      fixedLiveZ = (liveZ > 0 ? -0.004 : 0.004);
+    }*/
     double drift = readGyro() / 100;
 	  drift = Math.min(drift, 0.1);
     System.out.println("Drift: " + drift);
-    System.out.println("Rot Deg:" + rioGyro.getRotation2d().getDegrees());
-    //System.out.println("X:" + liveX);
-    //System.out.println("Z:" + liveZ);
+    m_drive.arcadeDrive(liveX, fixedLiveZ-drift);
+    System.out.println("Units traveled: " + Math.abs(ExampleCommand.motorSensor.getSelectedSensorPosition()-startPos));
+    //System.out.println(distanceToNativeUnits((1)));
+    //System.out.println("Rot Deg:" + rioGyro.getRotation2d().getDegrees());
+    System.out.println("X:" + liveX);
+    System.out.println("Z:" + liveZ);
+    System.out.println("Fixed Z: " + fixedLiveZ);
   }
 
   protected double readGyro() {

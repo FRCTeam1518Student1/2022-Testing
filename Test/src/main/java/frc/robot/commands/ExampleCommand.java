@@ -18,9 +18,9 @@ public class ExampleCommand extends CommandBase {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final ExampleSubsystem m_subsystem;
   private double startPos;
-  public static final TalonFX motorSensor = new TalonFX(2);
+  public static final TalonFX motorSensor = new TalonFX(0);
 
-
+  long startTime;
   final int kCountsPerRev = 2048;
   final double kSensorGearRatio = 10.71;
   final double kWheelRadiusInches = 3;
@@ -40,6 +40,7 @@ public class ExampleCommand extends CommandBase {
   @Override
   public void initialize() {
     startPos = motorSensor.getSelectedSensorPosition();
+    startTime = System.currentTimeMillis();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -48,9 +49,17 @@ public class ExampleCommand extends CommandBase {
     if(isFinished() == true) {
       return;
     }
-    double drift = readGyro() / 100;
+    /*if(!hasPassed(500)) {
+      System.out.println("Debug: " + Double.valueOf(-(Double.valueOf((System.currentTimeMillis()-startTime)/1000))));
+      Robot.driveTrain.autonomousDrive(Double.valueOf(-(Double.valueOf((System.currentTimeMillis()-startTime)/1000))), 0.0d);
+      return;
+    }*/
+    double drift = getGyroAngle() / 100;
 	  drift = Math.min(drift, 0.1);
-    Robot.driveTrain.autonomousDrive(-0.5d, -drift);
+    //System.out.println("Drift: " + drift);
+    //Robot.driveTrain.autonomousDrive(-0.3d, -drift);
+    // last value: 1125
+    Robot.driveTrain.autonomousDrive(-0.3d, 0.1115-drift);
   }
 
   // Called once the command ends or is interrupted.
@@ -58,15 +67,19 @@ public class ExampleCommand extends CommandBase {
   public void end(boolean interrupted) {
 
   }
-  // ~5000 units = 1 foot 
+  // ~45812 units = 1 meter 
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return (Math.abs(motorSensor.getSelectedSensorPosition()-startPos) > 45812);
+    return (Math.abs(motorSensor.getSelectedSensorPosition()-startPos) > 91624);
   }
 
-  protected double readGyro() {
+  private boolean hasPassed(long ms) {
+      return (System.currentTimeMillis()-startTime > ms);
+  }
+
+  protected double getGyroAngle() {
 		double angle = DriveTrain.rioGyro.getAngle();
 		return angle;
 	}
