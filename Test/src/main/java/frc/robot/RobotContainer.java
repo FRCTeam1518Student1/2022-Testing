@@ -1,48 +1,39 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.commands.DriveStraight;
+import frc.robot.commands.FirePiston;
+import frc.robot.subsystems.AutoSubsystem;
+import frc.robot.subsystems.SolenoidSubsystem;
+import frc.robot.util.BallShooter;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final AutoSubsystem m_exampleSubsystem = new AutoSubsystem();
+  private final SolenoidSubsystem solenoidSubsystem = new SolenoidSubsystem(2, 3);
 
-  private final ExampleCommand m_autoCommand = new ExampleCommand(m_exampleSubsystem);
+  private final DriveStraight m_autoCommand = new DriveStraight(m_exampleSubsystem);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  public final Joystick joystick = new Joystick(0);
+  public JoystickButton shootButton;
+  public JoystickButton switchPressure;
+  private final BallShooter ballshooter = new BallShooter();
+
   public RobotContainer() {
-    // Configure the button bindings
     configureButtonBindings();
   }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
-  private void configureButtonBindings() {}
+  private void configureButtonBindings() {
+    switchPressure = new JoystickButton(joystick, 7);
+    switchPressure.whenPressed(new FirePiston(solenoidSubsystem));
+    shootButton  = new JoystickButton(joystick, 1); // trigger on stick
+    shootButton.whenPressed(() -> ballshooter.shoot()).whenReleased(() -> ballshooter.stopShooting());
+  }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
     return m_autoCommand;
   }
 }

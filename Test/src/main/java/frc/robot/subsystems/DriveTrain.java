@@ -1,88 +1,83 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.AnalogGyro;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.interfaces.Gyro;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.ExampleCommand;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 public class DriveTrain extends SubsystemBase {
-  
-
-  private final double startPos;
-  private final MotorController rightFront = new WPI_TalonFX(2);
-  private final MotorController rightRear = new WPI_TalonFX(1);
+  private final static WPI_TalonFX rightFront = new WPI_TalonFX(2);
+  private final static WPI_TalonFX rightRear = new WPI_TalonFX(1);
   private final MotorControllerGroup rightMotorGroup = new MotorControllerGroup(rightFront, rightRear);
 
-  private final MotorController leftFront = new WPI_TalonFX(0);
-  private final MotorController leftRear = new WPI_TalonFX(3);
+  private final static WPI_TalonFX leftFront = new WPI_TalonFX(0);
+  private final static WPI_TalonFX leftRear = new WPI_TalonFX(3);
   private final MotorControllerGroup leftMotorGroup = new MotorControllerGroup(leftFront, leftRear);
-  public static AnalogGyro rioGyro;
+  public static ADXRS450_Gyro rioGyro;
   private final DifferentialDrive m_drive;
   private final double deadband = 0.1d;
-  private final double driveDeadband = 0.1d;
+ 
 
-
-  /** Creates a new ExampleSubsystem. */
   public DriveTrain() {
-    rioGyro = new AnalogGyro(0);
+    rioGyro = new ADXRS450_Gyro();
+    rioGyro.reset();
     m_drive = new DifferentialDrive(leftMotorGroup, rightMotorGroup);
     leftMotorGroup.setInverted(true);
-    startPos = ExampleCommand.motorSensor.getSelectedSensorPosition();
+    Shuffleboard.getTab("Gyro Tab").add(rioGyro);
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
   }
 
   @Override
   public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
   }
 
 
   public void driveByStick(final double liveX, final double liveZ) {
     double fixedLiveZ = Math.abs(liveZ) < deadband ? 0.0d : liveZ;
-    /*if(Math.abs(liveX) >= 0.1) {
-      fixedLiveZ = (liveZ > 0 ? -0.004 : 0.004);
-    }*/
-    double drift = readGyro() / 100;
+    double drift = getGyroAngleAsFraction();
 	  drift = Math.min(drift, 0.1);
-    System.out.println("Drift: " + drift);
+    // System.out.println("Raw Gyro Angle: " + rioGyro.getAngle());
+    // System.out.println("Drift (frac. gyro angle): " + drift);
     m_drive.arcadeDrive(liveX, fixedLiveZ-drift);
-    System.out.println("Units traveled: " + Math.abs(ExampleCommand.motorSensor.getSelectedSensorPosition()-startPos));
-    //System.out.println(distanceToNativeUnits((1)));
-    //System.out.println("Rot Deg:" + rioGyro.getRotation2d().getDegrees());
-    System.out.println("X:" + liveX);
-    System.out.println("Z:" + liveZ);
-    System.out.println("Fixed Z: " + fixedLiveZ);
   }
 
-  protected double readGyro() {
+  protected double getGyroAngleAsFraction() {
 		double angle = rioGyro.getAngle();
-		return angle;
+    // need to account for angle values > 360
+    angle = (double)angle % 360;
+    if (angle <= 90) {
+      return -angle/90.0;
+    } else if (angle >= 270) {
+      return (360 - 270) / 90;
+    }
+		return 0;
 	}
 
-  public void autonomousDrive(final double liveX, final double liveZ) {
-    m_drive.arcadeDrive(liveX, liveZ);
+  public static WPI_TalonFX getMotor(Motor m) {
+    return m.getTalonFx();
   }
 
-  private int distanceToNativeUnits(double positionMeters) {
-    double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(3));
-    double motorRotations = wheelRotations * 10.71;
-    int sensorCounts = (int)(motorRotations * 2048);
-    return sensorCounts;
+  public enum Motor {
+    RIGHT_FRONT(rightFront),
+    RIGHT_REAR(rightRear),
+    LEFT_FRONT(leftFront),
+    LEFT_REAR(leftRear);
+
+    private final WPI_TalonFX wFx;
+    private Motor(WPI_TalonFX wFx) {
+      this.wFx = wFx;
+    }
+
+    public WPI_TalonFX getTalonFx() {
+     return this.wFx;
+    }
   }
 }
