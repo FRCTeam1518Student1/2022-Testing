@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.DriveStraight;
 import frc.robot.commands.FirePiston;
 import frc.robot.subsystems.AutoSubsystem;
+import frc.robot.subsystems.BallIndexer;
 import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.SolenoidSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,10 +18,12 @@ public class RobotContainer {
 
   private final DriveStraight m_autoCommand = new DriveStraight(m_exampleSubsystem);
 
-  private final BallShooter ballshooter = new BallShooter();
+  private final BallShooter ballShooter = new BallShooter();
+  private final BallIndexer ballIndexer = new BallIndexer();
 
   public final Joystick joystick = new Joystick(0);
   public JoystickButton shootButton;
+  public JoystickButton indexButton;
   public JoystickButton switchPressure;
 
   public static RobotContainer INSTANCE;
@@ -33,13 +36,17 @@ public class RobotContainer {
   private void mapButtons() {
     switchPressure = new JoystickButton(joystick, 7);
 
-    shootButton  = new JoystickButton(joystick, 1);
+    shootButton  = new JoystickButton(joystick, 2);
+
+    indexButton = new JoystickButton(joystick, 1);
   }
 
   private void mapButtonTasks() {
     switchPressure.whenPressed(new FirePiston(solenoidSubsystem));
 
-    shootButton.whenPressed(() -> ballshooter.enableShooterMotor()).whenReleased(() -> ballshooter.disableShooterMotor());
+    shootButton.whileHeld(() -> ballShooter.enableShooterMotor()).whenReleased(() -> ballShooter.disableShooterMotor());
+
+    indexButton.whileHeld(() -> ballIndexer.enableIndexer()).whenReleased(() -> ballIndexer.disableIndexer());
   }
 
   public Command getAutonomousCommand() {

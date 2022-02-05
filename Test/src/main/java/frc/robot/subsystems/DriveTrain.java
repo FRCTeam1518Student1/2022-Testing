@@ -44,8 +44,9 @@ public class DriveTrain extends SubsystemBase {
     m_drive.arcadeDrive(liveX, fixedLiveZ-drift);
   }
 
-  protected double getGyroAngleAsFraction() {
+  public static double getGyroAngleAsFraction() {
 		double angle = rioGyro.getAngle();
+    System.out.println("Angle: " + angle);
     // need to account for angle values > 360
     angle = (double)angle % 360;
     if (angle <= 90) {
@@ -55,6 +56,10 @@ public class DriveTrain extends SubsystemBase {
     }
 		return 0;
 	}
+
+  public void autonomousDrive(final double liveX, final double liveZ) {
+    m_drive.arcadeDrive(liveX, liveZ);
+  }
 
   public static WPI_TalonFX getMotor(Motor m) {
     return m.getTalonFx();

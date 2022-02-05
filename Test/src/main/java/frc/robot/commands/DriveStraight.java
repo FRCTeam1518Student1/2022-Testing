@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.DriveTrain;
+import frc.robot.Robot;
 import frc.robot.subsystems.AutoSubsystem;
 import frc.robot.subsystems.DriveTrain.Motor;
 
@@ -26,9 +27,10 @@ public class DriveStraight extends CommandBase {
       return;
     }
     //double drift = -(DriveTrain.getMotor(Motor.LEFT_FRONT).getSelectedSensorPosition()) - DriveTrain.getMotor(Motor.RIGHT_FRONT).getSelectedSensorPosition();
-    double drift = Math.min((DriveTrain.rioGyro.getAngle() / 100d), 0.1);
-    System.out.println("Drift: " + drift);
-    //Robot.driveTrain.autonomousDrive(-0.3d, -drift);
+    double drift = DriveTrain.getGyroAngleAsFraction();
+    //System.out.println("Drift: " + drift);
+	  drift = Math.min(drift, 0.1);
+    Robot.driveTrain.autonomousDrive(-0.3d, -drift);
   }
 
   @Override

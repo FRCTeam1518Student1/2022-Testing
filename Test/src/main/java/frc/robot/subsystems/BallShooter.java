@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.util.Constants;
@@ -16,12 +17,14 @@ public class BallShooter extends SubsystemBase {
   public BallShooter() {
     shooterMotorEncoder.setPosition(0);
     setShooterIdleMode(IdleMode.kBrake);
+
   }
 
   public void enableShooterMotor() {
     double joyStickThrottle = RobotContainer.INSTANCE.joystick.getThrottle();
-    double shooterThrottle =  (-0.5*joyStickThrottle)+0.5;
+    double shooterThrottle = (-0.5*joyStickThrottle)+0.5;
     shooterMotor.set(shooterThrottle);
+    //SmartDashboard.putNumber("ShooterRPM", shooterMotorEncoder.getVelocity());
     
   }
 
