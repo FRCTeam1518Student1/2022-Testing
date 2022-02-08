@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -16,14 +15,11 @@ public class DriveTrain extends SubsystemBase {
   private final static WPI_TalonFX leftFront = new WPI_TalonFX(Constants.LeftFrontID);
   private final static WPI_TalonFX leftRear = new WPI_TalonFX(Constants.LeftRearID);
   private final MotorControllerGroup leftMotorGroup = new MotorControllerGroup(leftFront, leftRear);
-  public static ADXRS450_Gyro rioGyro;
   private final DifferentialDrive m_drive;
   private final double deadband = 0.1d;
  
 
   public DriveTrain() {
-    rioGyro = new ADXRS450_Gyro();
-    rioGyro.reset();
     m_drive = new DifferentialDrive(leftMotorGroup, rightMotorGroup);
     leftMotorGroup.setInverted(true);
   }
@@ -39,23 +35,8 @@ public class DriveTrain extends SubsystemBase {
 
   public void driveByStick(final double liveX, final double liveZ) {
     double fixedLiveZ = Math.abs(liveZ) < deadband ? 0.0d : liveZ;
-    double drift = getGyroAngleAsFraction();
-	  drift = Math.min(drift, 0.1);
-    m_drive.arcadeDrive(liveX, fixedLiveZ-drift);
+    m_drive.arcadeDrive(liveX, fixedLiveZ);
   }
-
-  public static double getGyroAngleAsFraction() {
-		double angle = rioGyro.getAngle();
-    System.out.println("Angle: " + angle);
-    // need to account for angle values > 360
-    angle = (double)angle % 360;
-    if (angle <= 90) {
-      return -angle/90.0;
-    } else if (angle >= 270) {
-      return (360 - 270) / 90;
-    }
-		return 0;
-	}
 
   public void autonomousDrive(final double liveX, final double liveZ) {
     m_drive.arcadeDrive(liveX, liveZ);

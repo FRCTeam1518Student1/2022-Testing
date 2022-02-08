@@ -26,11 +26,8 @@ public class DriveStraight extends CommandBase {
     if(isFinished() == true) {
       return;
     }
-    //double drift = -(DriveTrain.getMotor(Motor.LEFT_FRONT).getSelectedSensorPosition()) - DriveTrain.getMotor(Motor.RIGHT_FRONT).getSelectedSensorPosition();
-    double drift = DriveTrain.getGyroAngleAsFraction();
-    //System.out.println("Drift: " + drift);
-	  drift = Math.min(drift, 0.1);
-    Robot.driveTrain.autonomousDrive(-0.3d, -drift);
+    double z = m_subsystem.getZ(0);
+    Robot.driveTrain.autonomousDrive(-0.3d, z);
   }
 
   @Override
@@ -39,6 +36,6 @@ public class DriveStraight extends CommandBase {
 
   @Override
   public boolean isFinished() {
-    return (Math.abs(DriveTrain.getMotor(Motor.RIGHT_FRONT).getSelectedSensorPosition()-startPos) > 91624);
+    return (Math.abs(DriveTrain.getMotor(Motor.RIGHT_FRONT).getSelectedSensorPosition()-startPos) > 45812);
   }
 }
