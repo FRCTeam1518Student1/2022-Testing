@@ -7,7 +7,9 @@ import frc.robot.commands.DriveStraight;
 import frc.robot.commands.FirePiston;
 import frc.robot.subsystems.AutoSubsystem;
 import frc.robot.subsystems.BallIndexer;
+import frc.robot.subsystems.BallRejecter;
 import frc.robot.subsystems.BallShooter;
+import frc.robot.subsystems.Pivoter;
 import frc.robot.subsystems.SolenoidSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -20,6 +22,8 @@ public class RobotContainer {
 
   private final BallShooter ballShooter = new BallShooter();
   private final BallIndexer ballIndexer = new BallIndexer();
+  private final BallRejecter ballRejecter = new BallRejecter();
+  private final Pivoter limelightPivoter = new Pivoter();
 
   public final Joystick joystick = new Joystick(0);
   public JoystickButton shootButton;

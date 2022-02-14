@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.BallShooter;
 import frc.robot.subsystems.DriveTrain;
 
 public class Robot extends TimedRobot {
@@ -24,18 +25,23 @@ public class Robot extends TimedRobot {
 
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
-
-  private final ColorMatch matcher = new ColorMatch();
   
+  private static String currentBall = ""; 
+
   public static DriveTrain driveTrain = new DriveTrain();
+
+  private double lastPos1, lastPos2, posDifference;
 
   @Override
   public void robotInit() {
     container = new RobotContainer();
     usbCamera = CameraServer.startAutomaticCapture();
     usbCamera.setVideoMode(PixelFormat.kMJPEG, 160, 120, 15);
-    matcher.addColorMatch(Color.kFirstBlue);
-    matcher.addColorMatch(Color.kFirstRed);
+    //matcher.addColorMatch(new Color(0.523, 0.350, 0.127)); // red
+    //matcher.addColorMatch(new Color(0.154, 0.393, 0.454)); // blue
+    //matcher.addColorMatch(new Color(0.301, 0.487, 0.211)); // nothing
+    posDifference = 0;
+    lastPos1 = lastPos2 = -1;
   }
 
   @Override
@@ -48,11 +54,39 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Green", detectedColor.green);
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("IR", IR);
-    int proximity = m_colorSensor.getProximity();
-    SmartDashboard.putNumber("Proximity", proximity);
-    ColorMatchResult res = matcher.matchClosestColor(detectedColor);
+    //ColorMatchResult res = matcher.matchClosestColor(detectedColor);
+    doShooterRPM();
+    currentBall = getBallColorName(detectedColor);
+    SmartDashboard.putString("Ball Color", getBallColorName(detectedColor));
+  }
 
-    //System.out.println(res.color.red > 0.1d ? "Ball red." : "Ball blue.");
+  public String getBallColorName(Color c) {
+    double r = c.red;
+    if(r > 0.4) {
+      return "Red";
+    } else if (r < 0.2) {
+      return "Blue";
+    }
+    return "None";
+  }
+
+  public static String getCurrentColorBall() {
+    return currentBall;
+  }
+
+  public void doShooterRPM() {
+    // counts per revolution = 42
+    // 60 secs in a min
+    // 42*60=2520
+    if(lastPos1 == -1 && lastPos2 == -1) {
+      lastPos1 = BallShooter.shooterMotorEncoder.getPosition();
+    } else if(lastPos1 != -1 && lastPos2 == -1) {
+      lastPos2 = BallShooter.shooterMotorEncoder.getPosition();
+    } else if(lastPos1 != -1 && lastPos2 != -1) {
+      posDifference = Math.abs(lastPos2-lastPos1)*2520;
+      lastPos1 = lastPos2 = -1;
+    }
+    SmartDashboard.putNumber("ShooterRPM", posDifference);
   }
 
   @Override
